@@ -63,11 +63,6 @@ Simulate Trading
 run.py -s <nasdaq100|tsxci|sp100>
 ```
 
-Email out trading result of the day
-```
-run.py -e
-```
-
 
 ## Authors
 
