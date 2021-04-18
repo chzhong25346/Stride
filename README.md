@@ -26,7 +26,7 @@ What things you need to install the software and how to install them
 python3.5+
 pandas
 urllib3==1.22
-alpha_vantage==2.2.0
+alpha_vantage==2.3.1
 certifi==2020.4.5.1
 stockstats==0.3.0
 numpy==1.16.0
@@ -37,6 +37,8 @@ python_dateutil==2.8.1
 PyYAML==5.3.1
 lxml==4.5.2
 mysqlclient==2.0.1
+asyncio==3.4.3
+
 
 ```
 
@@ -46,11 +48,11 @@ mysqlclient==2.0.1
 Update quotes
 
 ```
-run.py -u <full|compact|fix> <nasdaq100|tsxci|sp100>
+Update: run.py -u <full|compact|fastfix|slowfix> <nasdaq100|tsxci|sp100> (ticker)
+Report: run.py -r <nasdaq100|tsxci|sp100>
+Simulate: run.py -s <nasdaq100|tsxci|sp100>
 ```
-*full: All quotes in all dates
-compact: Recent three months
-fix: fixing missing db due to connection timeout*
+
 
 
 Reporting
