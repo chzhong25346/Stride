@@ -100,8 +100,8 @@ def update(type, today_only, index_name, fix=False, ticker=None):
     elif (fix == 'fastfix'):
         tickerL = [ticker]
 
-    for ticker in tickerL:
-    # for ticker in ['PG']: # Fast fix a ticker
+    # for ticker in tickerL:
+    for ticker in ['SU']: # Fast fix a ticker
         try:
             if (fix == 'fastfix'): # Fast Update, bulk
                 df = get_daily_adjusted(Config, ticker, type, today_only, index_name)
@@ -123,6 +123,7 @@ def update(type, today_only, index_name, fix=False, ticker=None):
 
             else: # Compact Update
                 df = get_quote_endpoint(Config, ticker, index_name)
+                # df = get_daily_adjusted(Config, ticker, type, today_only, index_name)
                 model_list = map_quote(df, ticker)
                 bulk_save(s, model_list)
                 logger.info("--> %s" % ticker)

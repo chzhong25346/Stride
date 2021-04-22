@@ -56,7 +56,6 @@ def get_daily_adjusted(config, ticker, size, today_only, index_name):
             df = df.reset_index()
             return df
     except:
-        # logger.error('Failed to fetch %s' % ticker)
         raise fetchError('Fetching failed')
 
 

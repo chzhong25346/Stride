@@ -38,8 +38,6 @@ PyYAML==5.3.1
 lxml==4.5.2
 mysqlclient==2.0.1
 asyncio==3.4.3
-
-
 ```
 
 
