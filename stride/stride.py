@@ -1,5 +1,5 @@
 from .utils.config import Config
-from .utils.fetch import get_daily_adjusted, get_da_req, fetchError, get_quote_endpoint
+from .utils.fetch import get_daily_adjusted, get_da_req, fetchError, get_quote_endpoint, get_yahoo_finance_price
 from .utils.util import missing_ticker
 from .db.db import Db
 from .db.mapping import map_index, map_quote, map_fix_quote, map_report
@@ -122,15 +122,25 @@ def update(type, today_only, index_name, fix=False, ticker=None):
                 insert_onebyone(s, model_list)
 
             else: # Compact Update
+                # 1st fetch by Alphavantage
                 df = get_quote_endpoint(Config, ticker, index_name)
-                # df = get_daily_adjusted(Config, ticker, type, today_only, index_name)
-                model_list = map_quote(df, ticker)
-                bulk_save(s, model_list)
-                logger.info("--> %s" % ticker)
-
+                try:
+                    model_list = map_quote(df, ticker)
+                    bulk_save(s, model_list)
+                    logger.info("--> %s" % ticker)
+                except foundDup as e:
+                    # 2nd try by Yahoo Finance if duplicate
+                    try:
+                        if index_name == 'tsxci':
+                            df = get_yahoo_finance_price(ticker+'.TO')
+                        else:
+                            df = get_yahoo_finance_price(ticker)
+                        model_list = map_quote(df, ticker)
+                        bulk_save(s, model_list)
+                        logger.info("2--> %s" % ticker)
+                    except foundDup as e:
+                        logger.error("%s - (%s,%s)" % (e.value, index_name, ticker))
         except writeError as e:
-            logger.error("%s - (%s,%s)" % (e.value, index_name, ticker))
-        except foundDup as e:
             logger.error("%s - (%s,%s)" % (e.value, index_name, ticker))
         except fetchError as e:
             logger.error("%s - (%s,%s)" % (e.value, index_name, ticker))

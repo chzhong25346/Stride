@@ -132,6 +132,35 @@ def get_quote_endpoint(config, ticker, index_name):
         raise fetchError('Fetching failed')
 
 
+def get_yahoo_finance_price(ticker):
+    url = 'https://finance.yahoo.com/quote/'+ticker+'/history?p='+ticker
+    try:
+        html = requests.get(url).text
+    except:
+        time.sleep(30)
+        html = requests.get(url).text
+    try:
+        soup = BeautifulSoup(html,'html.parser')
+        soup_script = soup.find("script",text=re.compile("root.App.main")).text
+        matched = re.search("root.App.main\s+=\s+(\{.*\})",soup_script)
+        if matched:
+            json_script = json.loads(matched.group(1))
+            data = json_script['context']['dispatcher']['stores']['HistoricalPriceStore']['prices'][0]
+            df = pd.DataFrame({'date': dt.fromtimestamp(data['date']).strftime("%Y-%m-%d"),
+                             'close': round(data['close'], 2),
+                             "adjusted close": round(data['adjclose'], 2),
+                             'volume': data['volume'],
+                             'open': round(data['open'], 2),
+                             'high': round(data['high'], 2),
+                             'low': round(data['low'], 2),
+                             }, index=[0])
+            return df
+        else:
+            raise fetchError('Fetching failed')
+    except Exception as e:
+        raise fetchError('Fetching failed')
+
+
 class fetchError(Exception):
     def __init__(self, value):
         self.value = value
