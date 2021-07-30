@@ -177,3 +177,91 @@ class fetchError(Exception):
         self.value = value
     def __str__(self):
         return repr(self.value)
+
+
+######################################## YAHOO Fetching #########
+
+def get_yahoo_finance_price(ticker):
+    url = 'https://finance.yahoo.com/quote/'+ticker+'/history?p='+ticker
+    try:
+        html = requests.get(url, headers=_get_headers()).text
+    except:
+        time.sleep(30)
+        html = requests.get(url, headers=_get_headers()).text
+    try:
+        soup = BeautifulSoup(html,'html.parser')
+        soup_script = soup.find("script",text=re.compile("root.App.main")).text
+        matched = re.search("root.App.main\s+=\s+(\{.*\})",soup_script)
+        if matched:
+            json_script = json.loads(matched.group(1))
+            data = json_script['context']['dispatcher']['stores']['HistoricalPriceStore']['prices'][0]
+            df = pd.DataFrame({'date': dt.fromtimestamp(data['date']).strftime("%Y-%m-%d"),
+                             'close': round(data['close'], 2),
+                             "adjusted close": round(data['adjclose'], 2),
+                             'volume': data['volume'],
+                             'open': round(data['open'], 2),
+                             'high': round(data['high'], 2),
+                             'low': round(data['low'], 2),
+                             }, index=[0])
+            return df.iloc[0]['close']
+        else:
+            return None
+    except:
+        return None
+
+
+def get_yahoo_bvps(ticker):
+    url = 'https://finance.yahoo.com/quote/{0}/key-statistics?p={0}'.format(ticker)
+    try:
+        html = requests.get(url, headers=_get_headers()).text
+    except:
+        time.sleep(30)
+        html = requests.get(url, headers=_get_headers()).text
+    try:
+        soup = BeautifulSoup(html,'html.parser')
+        soup_script = soup.find("script",text=re.compile("root.App.main")).text
+        matched = re.search("root.App.main\s+=\s+(\{.*\})",soup_script)
+        if matched:
+            json_script = json.loads(matched.group(1))
+            cp = json_script['context']['dispatcher']['stores']['QuoteSummaryStore']['defaultKeyStatistics']['bookValue']['fmt']
+            return float(cp)
+        else:
+            return None
+    except:
+        return None
+
+
+def get_yahoo_cr(ticker):
+    url = 'https://finance.yahoo.com/quote/{0}/key-statistics?p={0}'.format(ticker)
+    try:
+        html = requests.get(url, headers=_get_headers()).text
+    except:
+        time.sleep(30)
+        html = requests.get(url, headers=_get_headers()).text
+    try:
+        soup = BeautifulSoup(html,'html.parser')
+        soup_script = soup.find("script",text=re.compile("root.App.main")).text
+        matched = re.search("root.App.main\s+=\s+(\{.*\})",soup_script)
+        if matched:
+            json_script = json.loads(matched.group(1))
+            cr = json_script['context']['dispatcher']['stores']['QuoteSummaryStore']['financialData']['currentRatio']['fmt']
+            return float(cr)
+        else:
+            return None
+    except:
+        pass
+
+
+
+def _get_headers():
+    return {"accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9",
+    "accept-encoding": "gzip, deflate, br",
+    "accept-language": "en-GB,en;q=0.9,en-US;q=0.8,ml;q=0.7",
+    "cache-control": "max-age=0",
+    "dnt": "1",
+    "sec-fetch-dest": "document",
+    "sec-fetch-mode": "navigate",
+    "sec-fetch-site": "none",
+    "sec-fetch-user": "?1",
+    "upgrade-insecure-requests": "1",
+    "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/81.0.4044.122 Safari/537.36"}

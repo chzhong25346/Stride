@@ -19,30 +19,23 @@ def simulator(s):
     # read report
     df_report = pd.read_sql(s.query(Report).filter(Report.date == date).statement, s.bind, index_col='symbol')
     # BUY list
-    all_in, half_in = buy_list(df_report)
+    buy_in = buy_list(df_report)
     # SELL list
-    all_out = sell_list(df_report)
+    sell_out = sell_list(df_report)
+    # buy_in = { 'TMUS':144.02}
     # BUY Order
-    if all_in:
-        quote_list = get_quote(all_in,s)
+    if buy_in:
+        quote_list = get_quote(buy_in, s)
         # execute buy order - trade.py
-        execute_order(quote_list,10000,"buy",s)
-    if half_in:
-        quote_list = get_quote(half_in,s)
-        # execute buy order $5000 - trade.py
-        execute_order(quote_list,5000,"buy",s)
+        execute_order(quote_list, "buy", s)
     # SELL Order
-    if all_out:
-        quote_list = get_quote(all_out,s)
+    if sell_out:
+        quote_list = get_quote(sell_out, s)
         # execute sell order - all holding quantity - trade.py
-        execute_order(quote_list,10000,"sell",s)
-    # if half_out:
-    #     quote_list = get_quote(half_out,s)
-    #     # execute sell order - half holding quntity - trade.py
-    #     execute_order(quote_list,5000,"sell",s)
-    # refreshing holding table
+        execute_order(quote_list, "sell", s)
+
     refresh_holding(s)
-    # rbreaker(engine_simulation, engine_dailydb)
+
 
 
 def buy_list(df):
@@ -50,11 +43,11 @@ def buy_list(df):
     return lists of tickers based on Buy triggers
     '''
     #  trigger.py
-    all_in = buy_strategy_a(df)
+    # all_in = buy_strategy_a(df)
     # logger.debug('Buy All: %s', ','.join(all_in))
-    half_in = buy_strategy_b(df)
-    logger.debug('Buy Half: %s', ','.join(half_in))
-    return all_in, half_in
+    buy_in = buy_strategy_b(df)
+    logger.debug('Buy Half: %s', ','.join(buy_in))
+    return buy_in
 
 
 def sell_list(df):
@@ -62,12 +55,12 @@ def sell_list(df):
     return lists of tickers based on Sell triggers
     '''
     # trigger.py
-    all_out = sell_strategy_a(df)
-    logger.debug('Sell All: %s', ','.join(all_out))
+    sell_out = sell_strategy_a(df)
+    logger.debug('Sell All: %s', ','.join(sell_out))
     # half_out = None
     # half_out = bear_oneyrhigh_doji_downtrend(df)
     # logger.debug('Sell Half: %s', ','.join(half_out) )
-    return all_out
+    return sell_out
 
 
 def refresh_holding(s):
