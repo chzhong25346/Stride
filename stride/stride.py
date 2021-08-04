@@ -100,8 +100,8 @@ def update(type, today_only, index_name, fix=False, ticker=None):
     elif (fix == 'fastfix'):
         tickerL = [ticker]
 
-    for ticker in tickerL:
-    # for ticker in ['SU']: # Fast fix a ticker
+    # for ticker in tickerL:
+    for ticker in tickerL[tickerL.index('ATZ'):]: # Fast fix a ticker
         try:
             if (fix == 'fastfix'): # Fast Update, bulk
                 df = get_daily_adjusted(Config, ticker, type, today_only, index_name)
@@ -130,22 +130,21 @@ def update(type, today_only, index_name, fix=False, ticker=None):
                     logger.info("--> %s" % ticker)
                 except foundDup as e:
                     # 2nd try by Yahoo Finance if duplicate
-                    try:
-                        if index_name == 'tsxci':
-                            df = get_yahoo_finance_price(ticker+'.TO')
-                        else:
-                            df = get_yahoo_finance_price(ticker)
-                        model_list = map_quote(df, ticker)
-                        bulk_save(s, model_list)
-                        logger.info("2--> %s" % ticker)
-                    except foundDup as e:
-                        logger.error("%s - (%s,%s)" % (e.value, index_name, ticker))
+                    if index_name == 'tsxci':
+                        df = get_yahoo_finance_price(ticker+'.TO')
+                    else:
+                        df = get_yahoo_finance_price(ticker)
+                    model_list = map_quote(df, ticker)
+                    bulk_save(s, model_list)
+                    logger.info("2--> %s" % ticker)
         except writeError as e:
             logger.error("%s - (%s,%s)" % (e.value, index_name, ticker))
         except fetchError as e:
             logger.error("%s - (%s,%s)" % (e.value, index_name, ticker))
+        except foundDup as e:
+            logger.error("%s - (%s,%s)" % (e.value, index_name, ticker))
         except:
-            logger.error("Updating failed - (index_name,%s)" % (index_name,ticker))
+            logger.error("Updating failed - (%s,%s)" % (index_name,ticker))
 
     s.close()
 
@@ -175,3 +174,10 @@ def simulate(index_name):
     # db.create_all()
     simulator(s)
     s.close()
+
+
+class foundDup(Exception):
+    def __init__(self, value):
+        self.value = value
+    def __str__(self):
+        return repr(self.value)
