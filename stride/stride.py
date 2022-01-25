@@ -95,13 +95,14 @@ def update(type, today_only, index_name, fix=False, ticker=None):
     tickerL = read_ticker(s)
 
     if (fix == 'slowfix'):
+        # tickerL = read_ticker(s)
         tickerL = missing_ticker(index_name)
 
     elif (fix == 'fastfix'):
         tickerL = [ticker]
 
     for ticker in tickerL:
-    # for ticker in tickerL[tickerL.index('ATZ'):]: # Fast fix a ticker
+    # for ticker in tickerL[tickerL.index('EFN'):]: # Fast fix a ticker
         try:
             if (fix == 'fastfix'): # Fast Update, bulk
                 df = get_daily_adjusted(Config, ticker, type, today_only, index_name)
@@ -128,7 +129,7 @@ def update(type, today_only, index_name, fix=False, ticker=None):
                     model_list = map_quote(df, ticker)
                     bulk_save(s, model_list)
                     logger.info("--> %s" % ticker)
-                except foundDup as e:
+                except:
                     # 2nd try by Yahoo Finance if duplicate
                     if index_name == 'tsxci':
                         df = get_yahoo_finance_price(ticker+'.TO')
@@ -176,8 +177,8 @@ def simulate(index_name):
     s.close()
 
 
-class foundDup(Exception):
-    def __init__(self, value):
-        self.value = value
-    def __str__(self):
-        return repr(self.value)
+# class foundDup(Exception):
+#     def __init__(self, value):
+#         self.value = value
+#     def __str__(self):
+#         return repr(self.value)
