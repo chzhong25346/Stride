@@ -265,3 +265,38 @@ def _get_headers():
     "sec-fetch-user": "?1",
     "upgrade-insecure-requests": "1",
     "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/81.0.4044.122 Safari/537.36"}
+
+
+def get_yahoo_finance_price_all(ticker):
+    url = 'https://finance.yahoo.com/quote/'+ticker+'/history?p='+ticker
+    try:
+        html = requests.get(url, headers=_get_headers()).text
+    except:
+        time.sleep(30)
+        html = requests.get(url, headers=_get_headers()).text
+    try:
+        soup = BeautifulSoup(html,'html.parser')
+        soup_script = soup.find("script",text=re.compile("root.App.main")).text
+        matched = re.search("root.App.main\s+=\s+(\{.*\})",soup_script)
+        if matched:
+            json_script = json.loads(matched.group(1))
+            data = json_script['context']['dispatcher']['stores']['HistoricalPriceStore']['prices']
+            df = pd.DataFrame(columns=['date', 'close', 'adjusted close', 'volume', 'open', 'high', 'low'])
+            for d in data:
+                try:
+                    df_temp = pd.DataFrame({'date': dt.fromtimestamp(d['date']).strftime("%Y-%m-%d"),
+                                     'close': round(d['close'], 2),
+                                     "adjusted close": round(d['adjclose'], 2),
+                                     'volume': d['volume'],
+                                     'open': round(d['open'], 2),
+                                     'high': round(d['high'], 2),
+                                     'low': round(d['low'], 2),
+                                     }, index=[0])
+                    df = df.append(df_temp)
+                except:
+                    pass
+            return df
+        else:
+            return None
+    except:
+        return None

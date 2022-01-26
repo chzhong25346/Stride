@@ -1,5 +1,6 @@
 from .utils.config import Config
-from .utils.fetch import get_daily_adjusted, get_da_req, fetchError, get_quote_endpoint, get_yahoo_finance_price
+from .utils.fetch import get_daily_adjusted, get_da_req, fetchError, get_quote_endpoint, get_yahoo_finance_price,\
+get_yahoo_finance_price_all
 from .utils.util import missing_ticker
 from .db.db import Db
 from .db.mapping import map_index, map_quote, map_fix_quote, map_report
@@ -105,7 +106,11 @@ def update(type, today_only, index_name, fix=False, ticker=None):
     # for ticker in tickerL[tickerL.index('EFN'):]: # Fast fix a ticker
         try:
             if (fix == 'fastfix'): # Fast Update, bulk
-                df = get_daily_adjusted(Config, ticker, type, today_only, index_name)
+                if index_name == 'tsxci':
+                    df = get_yahoo_finance_price_all(ticker+'.TO')
+                else:
+                    df = get_yahoo_finance_price_all(ticker)
+                # df = get_daily_adjusted(Config, ticker, type, today_only, index_name)
                 model_list = []
                 for index, row in df.iterrows():
                     model = map_fix_quote(row, ticker)
