@@ -119,7 +119,12 @@ def update(type, today_only, index_name, fix=False, ticker=None):
                 bulk_save(s, model_list)
 
             elif (fix == 'slowfix'): # Slow Update, one by one based on log.log
-                df = get_daily_adjusted(Config, ticker, type, today_only, index_name)
+                # df = get_daily_adjusted(Config, ticker, type, today_only, index_name)
+                if index_name == 'tsxci':
+                    df = get_yahoo_finance_price_all(ticker+'.TO')
+                else:
+                    df = get_yahoo_finance_price_all(ticker)
+                # df = get_daily_adjusted(Config, ticker, type, today_only, index_name)
                 model_list = []
                 for index, row in df.iterrows():
                     model = map_fix_quote(row, ticker)
