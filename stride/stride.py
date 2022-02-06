@@ -126,11 +126,14 @@ def update(type, today_only, index_name, fix=False, ticker=None):
                     df = get_yahoo_finance_price_all(ticker)
                 # df = get_daily_adjusted(Config, ticker, type, today_only, index_name)
                 model_list = []
-                for index, row in df.iterrows():
-                    model = map_fix_quote(row, ticker)
-                    model_list.append(model)
-                logger.info("--> %s" % ticker)
-                insert_onebyone(s, model_list)
+                if not df.empty:
+                    for index, row in df.iterrows():
+                        model = map_fix_quote(row, ticker)
+                        model_list.append(model)
+                    logger.info("--> %s" % ticker)
+                    insert_onebyone(s, model_list)
+                else:
+                    logger.info("--> (%s, not exist)" % ticker)
 
             else: # Compact Update
                 # 1st fetch by Alphavantage
