@@ -295,7 +295,7 @@ def get_yahoo_finance_price_all(ticker):
                     df = df.append(df_temp)
                 except:
                     pass
-            return df
+            return df.drop_duplicates(subset='date', keep="last")
         else:
             return None
     except:
