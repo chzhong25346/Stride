@@ -3,7 +3,7 @@ urllib3==1.22
 alpha_vantage==2.3.1
 certifi==2020.4.5.1
 stockstats==0.3.0
-numpy==1.16.0
+numpy
 requests==2.18.4
 SQLAlchemy==1.2.7
 beautifulsoup4==4.6.0
