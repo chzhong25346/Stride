@@ -28,7 +28,7 @@ def main(argv):
         opts, args = getopt.getopt(argv,"u:rsh",["update=", "report=", "simulate="])
 
     except getopt.GetoptError:
-        print('Update: run.py -u <full|compact|fastfix|slowfix> <nasdaq100|tsxci|sp100> (ticker)')
+        print('Update: run.py -u <full|compact|fastfix|slowfix|slowfix_missing> <nasdaq100|tsxci|sp100> (ticker)')
         print('Report: run.py -r <nasdaq100|tsxci|sp100>')
         print('Simulate: run.py -s <nasdaq100|tsxci|sp100>')
         sys.exit(2)
@@ -36,13 +36,13 @@ def main(argv):
     for opt, arg in opts:
 
         if opt == '-h':
-            print('Update: run.py -u <full|compact|fastfix|slowfix> <nasdaq100|tsxci|sp100> (ticker)')
+            print('Update: run.py -u <full|compact|fastfix|slowfix|slowfix_missing> <nasdaq100|tsxci|sp100> (ticker)')
             print('Report: run.py -r <nasdaq100|tsxci|sp100>')
             print('Simulate: run.py -s <nasdaq100|tsxci|sp100>')
             sys.exit()
 
         elif (opt == '-u' and len(argv) < 3):
-            print('run.py -u <full|compact|fastfix|slowfix> <nasdaq100|tsxci|sp100> (ticker)')
+            print('run.py -u <full|compact|fastfix|slowfix|slowfix_missing> <nasdaq100|tsxci|sp100> (ticker)')
             sys.exit()
 
         elif opt in ("-u", "--update"):
@@ -63,6 +63,12 @@ def main(argv):
                 type = 'full' # fixing requires full data
                 today_only = False
                 update(type, today_only, index_name, fix='slowfix')  # Compact update for today
+
+            elif(arg == 'slowfix_missing'):
+                index_name = argv[2]
+                type = 'full' # fixing requires full data
+                today_only = False
+                update(type, today_only, index_name, fix='slowfix_missing')  # Compact update for today
 
             elif(arg == 'fastfix'):
                 index_name = argv[2]
@@ -95,11 +101,11 @@ def update(type, today_only, index_name, fix=False, ticker=None):
         bulk_save(s, map_index(index_name))
     tickerL = read_ticker(s)
 
-    # if (fix == 'slowfix'):
-    #     # tickerL = read_ticker(s)
-    #     tickerL = missing_ticker(index_name)
-
-    if (fix == 'fastfix'):
+    if (fix == 'slowfix_missing'):
+        # tickerL = read_ticker(s)
+        tickerL = missing_ticker(index_name)
+        
+    elif (fix == 'fastfix'):
         tickerL = [ticker]
 
     for ticker in tickerL:
@@ -118,7 +124,7 @@ def update(type, today_only, index_name, fix=False, ticker=None):
                 logger.info("--> %s" % ticker)
                 bulk_save(s, model_list)
 
-            elif (fix == 'slowfix'): # Slow Update, one by one based on log.log
+            elif (fix == 'slowfix' or fix == 'slowfix_missing'): # Slow Update, one by one based on log.log
                 # df = get_daily_adjusted(Config, ticker, type, today_only, index_name)
                 if index_name == 'tsxci':
                     df = get_yahoo_finance_price_all(ticker+'.TO')
