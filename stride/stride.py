@@ -95,11 +95,11 @@ def update(type, today_only, index_name, fix=False, ticker=None):
         bulk_save(s, map_index(index_name))
     tickerL = read_ticker(s)
 
-    if (fix == 'slowfix'):
-        # tickerL = read_ticker(s)
-        tickerL = missing_ticker(index_name)
+    # if (fix == 'slowfix'):
+    #     # tickerL = read_ticker(s)
+    #     tickerL = missing_ticker(index_name)
 
-    elif (fix == 'fastfix'):
+    if (fix == 'fastfix'):
         tickerL = [ticker]
 
     for ticker in tickerL:
