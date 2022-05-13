@@ -104,7 +104,7 @@ def update(type, today_only, index_name, fix=False, ticker=None):
     if (fix == 'slowfix_missing'):
         # tickerL = read_ticker(s)
         tickerL = missing_ticker(index_name)
-        
+
     elif (fix == 'fastfix'):
         tickerL = [ticker]
 
