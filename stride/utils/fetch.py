@@ -184,10 +184,10 @@ class fetchError(Exception):
 def get_yahoo_finance_price(ticker):
     url = 'https://finance.yahoo.com/quote/'+ticker+'/history?p='+ticker
     try:
-        html = requests.get(url, headers=_get_headers()).text
+        html = requests.get(url, headers=_get_headers(), timeout=(3.05, 21)).text
     except:
         time.sleep(30)
-        html = requests.get(url, headers=_get_headers()).text
+        html = requests.get(url, headers=_get_headers(), timeout=(3.05, 21)).text
     try:
         soup = BeautifulSoup(html,'html.parser')
         soup_script = soup.find("script",text=re.compile("root.App.main")).text
@@ -270,10 +270,10 @@ def _get_headers():
 def get_yahoo_finance_price_all(ticker):
     url = 'https://finance.yahoo.com/quote/'+ticker+'/history?p='+ticker
     try:
-        html = requests.get(url, headers=_get_headers()).text
+        html = requests.get(url, headers=_get_headers(), timeout=(3.05, 21)).text
     except:
         time.sleep(30)
-        html = requests.get(url, headers=_get_headers()).text
+        html = requests.get(url, headers=_get_headers(), timeout=(3.05, 21)).text
     try:
         soup = BeautifulSoup(html,'html.parser')
         soup_script = soup.find("script",text=re.compile("root.App.main")).text
