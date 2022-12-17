@@ -15,9 +15,9 @@ def bulk_save(session, model_list):
     except exc.IntegrityError:
         session.rollback()
         raise foundDup('Found duplicate')
-    except:
-        session.rollback()
-        raise writeError('Writing failed')
+    # except:
+    #     session.rollback()
+    #     raise writeError('Writing failed')
 
 
 def insert_onebyone(session, model_list):
