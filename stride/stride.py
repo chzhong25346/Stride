@@ -109,7 +109,7 @@ def update(type, today_only, index_name, fix=False, ticker=None):
         tickerL = [ticker]
 
     for ticker in tickerL:
-    # for ticker in tickerL[tickerL.index('EFN'):]: # Fast fix a ticker
+    # for ticker in tickerL[tickerL.index('BNS'):]: # Fast fix a ticker
         try:
             if (fix == 'fastfix'): # Fast Update, bulk
                 # if index_name == 'tsxci':
@@ -150,10 +150,10 @@ def update(type, today_only, index_name, fix=False, ticker=None):
                     logger.info("--> %s" % ticker)
                 except:
                     # 2nd try by Yahoo Finance if duplicate
-                    # if index_name == 'tsxci':
-                    #     df = get_yahoo_finance_price(ticker+'.TO')
-                    # else:
-                    #     df = get_yahoo_finance_price(ticker)
+                    if index_name == 'tsxci':
+                        df = get_yahoo_finance_price(ticker+'.TO')
+                    else:
+                        df = get_yahoo_finance_price(ticker)
                     model_list = map_quote(df, ticker)
                     bulk_save(s, model_list)
                     logger.info("2--> %s" % ticker)

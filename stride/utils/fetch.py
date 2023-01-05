@@ -10,6 +10,7 @@ from alpha_vantage.timeseries import TimeSeries
 import logging
 import requests, re
 from bs4 import BeautifulSoup
+import yfinance as yf
 logger = logging.getLogger('main.fetch')
 
 
@@ -133,41 +134,20 @@ def get_quote_endpoint(config, ticker, index_name):
 
 
 def get_yahoo_finance_price(ticker):
-    url = 'https://finance.yahoo.com/quote/'+ticker+'/history?p='+ticker
-    headers = {"accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9",
-"accept-encoding": "gzip, deflate, br",
-"accept-language": "en-GB,en;q=0.9,en-US;q=0.8,ml;q=0.7",
-"cache-control": "max-age=0",
-"dnt": "1",
-"sec-fetch-dest": "document",
-"sec-fetch-mode": "navigate",
-"sec-fetch-site": "none",
-"sec-fetch-user": "?1",
-"upgrade-insecure-requests": "1",
-"user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/81.0.4044.122 Safari/537.36"}
+    # time.sleep(2)
     try:
-        html = requests.get(url, headers=headers).text
-    except:
-        time.sleep(30)
-        html = requests.get(url, headers=headers).text
-    try:
-        soup = BeautifulSoup(html,'html.parser')
-        soup_script = soup.find("script",text=re.compile("root.App.main")).text
-        matched = re.search("root.App.main\s+=\s+(\{.*\})",soup_script)
-        if matched:
-            json_script = json.loads(matched.group(1))
-            data = json_script['context']['dispatcher']['stores']['HistoricalPriceStore']['prices'][0]
-            df = pd.DataFrame({'date': dt.fromtimestamp(data['date']).strftime("%Y-%m-%d"),
-                             'close': round(data['close'], 2),
-                             "adjusted close": round(data['adjclose'], 2),
-                             'volume': data['volume'],
-                             'open': round(data['open'], 2),
-                             'high': round(data['high'], 2),
-                             'low': round(data['low'], 2),
-                             }, index=[0])
-            return df
-        else:
-            raise fetchError('Fetching failed')
+        t = yf.Ticker(ticker)
+        data = t.history(period="1d")
+        data.reset_index(inplace=True)
+        df = pd.DataFrame({'date': data['Date'].dt.strftime("%Y-%m-%d"),
+                         'close': round(data['Close'], 2),
+                         "adjusted close": round(data['Close'], 2),
+                         'volume': data['Volume'],
+                         'open': round(data['Open'], 2),
+                         'high': round(data['High'], 2),
+                         'low': round(data['Low'], 2),
+                         }, index=[0])
+        return df
     except Exception as e:
         raise fetchError('Fetching failed')
 
@@ -181,33 +161,33 @@ class fetchError(Exception):
 
 ######################################## YAHOO Fetching #########
 
-def get_yahoo_finance_price(ticker):
-    url = 'https://finance.yahoo.com/quote/'+ticker+'/history?p='+ticker
-    try:
-        html = requests.get(url, headers=_get_headers(), timeout=(3.05, 21)).text
-    except:
-        time.sleep(30)
-        html = requests.get(url, headers=_get_headers(), timeout=(3.05, 21)).text
-    try:
-        soup = BeautifulSoup(html,'html.parser')
-        soup_script = soup.find("script",text=re.compile("root.App.main")).text
-        matched = re.search("root.App.main\s+=\s+(\{.*\})",soup_script)
-        if matched:
-            json_script = json.loads(matched.group(1))
-            data = json_script['context']['dispatcher']['stores']['HistoricalPriceStore']['prices'][0]
-            df = pd.DataFrame({'date': dt.fromtimestamp(data['date']).strftime("%Y-%m-%d"),
-                             'close': round(data['close'], 2),
-                             "adjusted close": round(data['adjclose'], 2),
-                             'volume': data['volume'],
-                             'open': round(data['open'], 2),
-                             'high': round(data['high'], 2),
-                             'low': round(data['low'], 2),
-                             }, index=[0])
-            return df.iloc[0]['close']
-        else:
-            return None
-    except:
-        return None
+# def get_yahoo_finance_price(ticker):
+#     url = 'https://finance.yahoo.com/quote/'+ticker+'/history?p='+ticker
+#     try:
+#         html = requests.get(url, headers=_get_headers(), timeout=(3.05, 21)).text
+#     except:
+#         time.sleep(30)
+#         html = requests.get(url, headers=_get_headers(), timeout=(3.05, 21)).text
+#     try:
+#         soup = BeautifulSoup(html,'html.parser')
+#         soup_script = soup.find("script",text=re.compile("root.App.main")).text
+#         matched = re.search("root.App.main\s+=\s+(\{.*\})",soup_script)
+#         if matched:
+#             json_script = json.loads(matched.group(1))
+#             data = json_script['context']['dispatcher']['stores']['HistoricalPriceStore']['prices'][0]
+#             df = pd.DataFrame({'date': dt.fromtimestamp(data['date']).strftime("%Y-%m-%d"),
+#                              'close': round(data['close'], 2),
+#                              "adjusted close": round(data['adjclose'], 2),
+#                              'volume': data['volume'],
+#                              'open': round(data['open'], 2),
+#                              'high': round(data['high'], 2),
+#                              'low': round(data['low'], 2),
+#                              }, index=[0])
+#             return df.iloc[0]['close']
+#         else:
+#             return None
+#     except:
+#         return None
 
 
 def get_yahoo_bvps(ticker):
