@@ -108,14 +108,14 @@ def update(type, today_only, index_name, fix=False, ticker=None):
     elif (fix == 'fastfix'):
         tickerL = [ticker]
 
-    for ticker in tickerL:
-    # for ticker in tickerL[tickerL.index('BNS'):]: # Fast fix a ticker
+    # for ticker in tickerL:
+    for ticker in tickerL[tickerL.index('TOU'):]: # Fast fix a ticker
         try:
             if (fix == 'fastfix'): # Fast Update, bulk
-                # if index_name == 'tsxci':
-                #     df = get_yahoo_finance_price_all(ticker+'.TO')
-                # else:
-                #     df = get_yahoo_finance_price_all(ticker)
+                if index_name == 'tsxci':
+                    df = get_yahoo_finance_price_all(ticker+'.TO')
+                else:
+                    df = get_yahoo_finance_price_all(ticker)
                 df = get_daily_adjusted(Config, ticker, type, today_only, index_name)
                 model_list = []
                 for index, row in df.iterrows():
@@ -125,11 +125,11 @@ def update(type, today_only, index_name, fix=False, ticker=None):
                 bulk_save(s, model_list)
 
             elif (fix == 'slowfix' or fix == 'slowfix_missing'): # Slow Update, one by one based on log.log
-                df = get_daily_adjusted(Config, ticker, type, today_only, index_name)
-                # if index_name == 'tsxci':
-                #     df = get_yahoo_finance_price_all(ticker+'.TO')
-                # else:
-                #     df = get_yahoo_finance_price_all(ticker)
+                # df = get_daily_adjusted(Config, ticker, type, today_only, index_name)
+                if index_name == 'tsxci':
+                    df = get_yahoo_finance_price_all(ticker+'.TO')
+                else:
+                    df = get_yahoo_finance_price_all(ticker)
                 # df = get_daily_adjusted(Config, ticker, type, today_only, index_name)
                 model_list = []
                 if df is not None:
@@ -142,18 +142,18 @@ def update(type, today_only, index_name, fix=False, ticker=None):
                     logger.info("--> (%s, not exist)" % ticker)
 
             else: # Compact Update
-                # 1st fetch by Alphavantage
-                df = get_quote_endpoint(Config, ticker, index_name)
+                # Yahoo Finance if duplicate
+                if index_name == 'tsxci':
+                    df = get_yahoo_finance_price(ticker + '.TO')
+                else:
+                    df = get_yahoo_finance_price(ticker)
                 try:
                     model_list = map_quote(df, ticker)
                     bulk_save(s, model_list)
                     logger.info("--> %s" % ticker)
                 except:
-                    # 2nd try by Yahoo Finance if duplicate
-                    if index_name == 'tsxci':
-                        df = get_yahoo_finance_price(ticker+'.TO')
-                    else:
-                        df = get_yahoo_finance_price(ticker)
+                    # fetch by Alphavantage
+                    df = get_quote_endpoint(Config, ticker, index_name)
                     model_list = map_quote(df, ticker)
                     bulk_save(s, model_list)
                     logger.info("2--> %s" % ticker)

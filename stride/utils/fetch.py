@@ -13,6 +13,19 @@ from bs4 import BeautifulSoup
 import yfinance as yf
 logger = logging.getLogger('main.fetch')
 
+# Create a filter to ignore DEBUG log messages
+class NoDebugFilter(logging.Filter):
+    def filter(self, record):
+        return record.levelno != logging.DEBUG
+
+# Set up a handler with the filter to ignore DEBUG logs
+handler = logging.StreamHandler()
+handler.addFilter(NoDebugFilter())
+
+# Set the handler on the yfinance logger
+yf_logger = logging.getLogger("yfinance")
+yf_logger.addHandler(handler)
+
 
 def fetch_index(index_name):
     path = os.path.dirname(os.path.abspath(__file__))
@@ -114,27 +127,27 @@ def get_daily_adjusted(config, ticker, size, today_only, index_name):
 def get_quote_endpoint(config, ticker, index_name):
     key = config.AV_KEY
     ts = TimeSeries(key, output_format='pandas')
-    try:
-        time.sleep(15)
-        if(index_name == 'tsxci'):
-            ticker = ticker+'.TO'
-        df, meta_data = ts.get_quote_endpoint(ticker)
-        df.drop(["08. previous close","09. change", "10. change percent"], axis=1, inplace=True)
-        df.rename(columns={'01. symbol': 'symbol',
-                          '02. open': 'open',
-                          '03. high': 'high',
-                          '04. low': 'low',
-                          '05. price': 'close',
-                          '07. latest trading day': 'date'}, inplace=True)
-        df.columns = ["symbol","open","high","low","close","volume","date"]
-        df['adjusted close'] = df['close']
-        return df
-    except:
-        raise fetchError('Fetching failed')
+    # try:
+    time.sleep(15)
+    if(index_name == 'tsxci'):
+        ticker = ticker+'.TO'
+    df, meta_data = ts.get_quote_endpoint(ticker)
+    df.drop(["08. previous close","09. change", "10. change percent"], axis=1, inplace=True)
+    df.rename(columns={'01. symbol': 'symbol',
+                      '02. open': 'open',
+                      '03. high': 'high',
+                      '04. low': 'low',
+                      '05. price': 'close',
+                      '07. latest trading day': 'date'}, inplace=True)
+    df.columns = ["symbol","open","high","low","close","volume","date"]
+    df['adjusted close'] = df['close']
+    return df
+    # except:
+    #     raise fetchError('Fetching failed')
 
 
 def get_yahoo_finance_price(ticker):
-    # time.sleep(2)
+    time.sleep(2)
     try:
         t = yf.Ticker(ticker)
         data = t.history(period="1d")
@@ -247,36 +260,16 @@ def _get_headers():
     "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/81.0.4044.122 Safari/537.36"}
 
 
-def get_yahoo_finance_price_all(ticker):
-    url = 'https://finance.yahoo.com/quote/'+ticker+'/history?p='+ticker
+def get_yahoo_finance_price_all(ticker, length="5y"):
+    time.sleep(2)
     try:
-        html = requests.get(url, headers=_get_headers(), timeout=(3.05, 21)).text
-    except:
-        time.sleep(30)
-        html = requests.get(url, headers=_get_headers(), timeout=(3.05, 21)).text
-    try:
-        soup = BeautifulSoup(html,'html.parser')
-        soup_script = soup.find("script",text=re.compile("root.App.main")).text
-        matched = re.search("root.App.main\s+=\s+(\{.*\})",soup_script)
-        if matched:
-            json_script = json.loads(matched.group(1))
-            data = json_script['context']['dispatcher']['stores']['HistoricalPriceStore']['prices']
-            df = pd.DataFrame(columns=['date', 'close', 'adjusted close', 'volume', 'open', 'high', 'low'])
-            for d in data:
-                try:
-                    df_temp = pd.DataFrame({'date': dt.fromtimestamp(d['date']).strftime("%Y-%m-%d"),
-                                     'close': round(d['close'], 2),
-                                     "adjusted close": round(d['adjclose'], 2),
-                                     'volume': d['volume'],
-                                     'open': round(d['open'], 2),
-                                     'high': round(d['high'], 2),
-                                     'low': round(d['low'], 2),
-                                     }, index=[0])
-                    df = df.append(df_temp)
-                except:
-                    pass
-            return df.drop_duplicates(subset='date', keep="last")
-        else:
-            return None
+        t = yf.Ticker(ticker)
+        data = t.history(period=length)
+        data.reset_index(inplace=True)
+        data.rename(columns={"Date": "date", "Open": "open","High": "high","Low":"low","Close":"close","Volume":"volume"}, inplace=True)
+        data['adjusted close'] = data['close']
+        data = data[["date","open","high","low","close","volume","adjusted close"]]
+        data['date'] = data['date'].dt.strftime("%Y-%m-%d")
+        return data.drop_duplicates(subset='date', keep="last")
     except:
         return None
