@@ -108,8 +108,8 @@ def update(type, today_only, index_name, fix=False, ticker=None):
     elif (fix == 'fastfix'):
         tickerL = [ticker]
 
-    # for ticker in tickerL:
-    for ticker in tickerL[tickerL.index('TOU'):]: # Fast fix a ticker
+    for ticker in tickerL:
+    # for ticker in tickerL[tickerL.index('TOU'):]: # Fast fix a ticker
         try:
             if (fix == 'fastfix'): # Fast Update, bulk
                 if index_name == 'tsxci':
