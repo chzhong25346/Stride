@@ -4,7 +4,7 @@ alpha_vantage==2.2.0
 certifi==2022.9.24
 stockstats==0.3.0
 numpy~=1.21.6
-requests==2.28.1
+requests==2.31
 SQLAlchemy==1.4.44
 beautifulsoup4==4.11.1
 python_dateutil==2.8.1
@@ -13,4 +13,4 @@ lxml==4.9.1
 mysqlclient==2.0.1
 int_date==0.1.8
 html5lib==1.1
-yfinance==0.2.24
+yfinance==0.2.54
