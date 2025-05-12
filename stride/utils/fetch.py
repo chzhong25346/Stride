@@ -265,14 +265,14 @@ def _get_headers():
 def get_yahoo_finance_price_all(ticker, length="5y"):
     time.sleep(2)
     session = curl_requests.Session(impersonate="chrome99")
-    try:
-        t = yf.Ticker(ticker, session=session)
-        data = t.history(period=length)
-        data.reset_index(inplace=True)
-        data.rename(columns={"Date": "date", "Open": "open","High": "high","Low":"low","Close":"close","Volume":"volume"}, inplace=True)
-        data['adjusted close'] = data['close']
-        data = data[["date","open","high","low","close","volume","adjusted close"]]
-        data['date'] = data['date'].dt.strftime("%Y-%m-%d")
-        return data.drop_duplicates(subset='date', keep="last")
-    except:
-        return None
+    # try:
+    t = yf.Ticker(ticker, session=session)
+    data = t.history(period=length)
+    data.reset_index(inplace=True)
+    data.rename(columns={"Date": "date", "Open": "open","High": "high","Low":"low","Close":"close","Volume":"volume"}, inplace=True)
+    data['adjusted close'] = data['close']
+    data = data[["date","open","high","low","close","volume","adjusted close"]]
+    data['date'] = data['date'].dt.strftime("%Y-%m-%d")
+    return data.drop_duplicates(subset='date', keep="last")
+    # except:
+    #     return None
